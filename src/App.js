@@ -1,83 +1,57 @@
 import './App.css';
-import Messages from "./Messages";
+import Side from './Side'
 import React, { Component} from 'react';
-import Input from "./Input";
-
+import Main from "./Main";
+import { Link, Route, Routes } from 'react-router-dom';
 class App extends Component {
 
-  constructor() {
-    super();
-    this.drone = new window.Scaledrone("CkhRCXpa10mfxdEc", {
-      data: this.state.member
-    });
-    this.drone.on('open', error => {
-      if (error) {
-        return console.error(error);
-      }
-      const member = {...this.state.member};
-      member.id = this.drone.clientId;
-      this.setState({member});
-    });
-
-    const room = this.drone.subscribe("observable-room");
-
-    room.on('data', (data, member) => {
-      const messages = this.state.messages;
-      messages.push({member, text: data});
-      this.setState({messages});
-    });
-  }
-  
   state = {
-    messages: [
-      {
-        text: [],
-        member: {
-          color:'',
-          username: ''
-        }
-      }
-    ],
-    member: {
-      username: this.randomName(),
-      color: this.randomColor()
-    }
+    userName: '',
+    mess: false,
+    mesCounter: 0
   }
 
-   randomName() {
-    const adjectives = ["autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark", "summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter", "patient", "twilight", "dawn", "crimson", "wispy", "weathered", "blue", "billowing", "broken", "cold", "damp", "falling", "frosty", "green", "long", "late", "lingering", "bold", "little", "morning", "muddy", "old", "red", "rough", "still", "small", "sparkling", "throbbing", "shy", "wandering", "withered", "wild", "black", "young", "holy", "solitary", "fragrant", "aged", "snowy", "proud", "floral", "restless", "divine", "polished", "ancient", "purple", "lively", "nameless"];
-    const nouns = ["waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning", "snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter", "forest", "hill", "cloud", "meadow", "sun", "glade", "bird", "brook", "butterfly", "bush", "dew", "dust", "field", "fire", "flower", "firefly", "feather", "grass", "haze", "mountain", "night", "pond", "darkness", "snowflake", "silence", "sound", "sky", "shape", "surf", "thunder", "violet", "water", "wildflower", "wave", "water", "resonance", "sun", "wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper", "frog", "smoke", "star"];
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    return adjective + noun;
-  }
-  
-   randomColor() {
-    return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16);
+  currentName = (name) => {
+    this.setState({userName : name});  
   }
 
-  onSendMessage = (message) => {
-    this.drone.publish({
-      room: "observable-room",
-      message
-    });
+  isMessageSent = () => {
+    this.setState({mess : true});
+    this.setState({mesCounter: this.state.mesCounter + 1})
   }
-
 
 
   render(){
-  return (
-    <div className="App">
-    <Messages
-      messages={this.state.messages}
-      currentMember={this.state.member}
-    />
+    const HOME_ROUTE = '/';
+    const SIDE_PAGE = 'side_page'
 
-    <Input
-        onSendMessage={this.onSendMessage}
-      />
-  </div>
-  );
+    let isThereAnyMessages = this.state.mess;
+
+    return (
+      <div className="App">
+        <nav>
+          <div className='leftSide'>
+            My Chat App
+          </div>
+
+          <div className='rightSide'>
+            <ul>
+              <li><Link className='router-link' to={HOME_ROUTE} onClick={() => {this.setState({mesCounter: 0}); this.setState({mess: false})}} >Home</Link></li>
+
+              {isThereAnyMessages ? (
+                <li><Link className='router-link' to={SIDE_PAGE}>Hello User Click me</Link></li>
+              ) : (<></>)
+              }
+            </ul>
+          </div>
+        </nav>
+
+        <Routes>
+          <Route path={HOME_ROUTE} element={<Main  isMessageSent={this.isMessageSent} currentName={this.currentName} />} />
+          <Route path={SIDE_PAGE} element={<Side userName={this.state.userName} mesCount={this.state.mesCounter}/>} />
+        </Routes>
+    </div>
+    );
 }
 }
 
